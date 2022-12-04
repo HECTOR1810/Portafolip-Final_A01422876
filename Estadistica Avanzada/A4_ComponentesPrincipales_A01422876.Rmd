@@ -1,0 +1,166 @@
+---
+title: "A4 Componentes Principales"
+author: "Héctor San Román Caraza"
+date: "18/10/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Parte 1
+
+```{r}
+setwd("C:/Users/hsrc1/Downloads")
+df <- read.csv("paises_mundo.csv")
+df
+```
+### Matriz Correlación
+
+```{r}
+cormat = round(cor(df),4)
+library(reshape2)
+melted_cormat <- melt(cormat)
+
+library(ggplot2)
+ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile(color="cyan")
+round(cor(df),2)
+```
+
+### Matriz covarianzas
+
+```{r}
+covmat = round(cov(df),4)
+library(reshape2)
+melted_covmat <- melt(covmat)
+
+library(ggplot2)
+ggplot(data = melted_covmat, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile(color="cyan")
+round(cov(df),2)
+```
+
+### Eigen valores y vectores
+
+```{r}
+
+# Covarianza
+
+EVal_Cov <- eigen(covmat)$values
+EVec_Cov <- eigen(covmat)$vectors
+
+# Correlación
+
+EVal_Cor <- eigen(cormat)$values
+EVec_Cor <- eigen(cormat)$vectors
+
+```
+
+
+### Varianza por cada componente
+
+```{r}
+var_t <- sum(diag(covmat))
+var_t
+listaV <- list()
+
+for (i in 1:length(EVal_Cov)) {
+  Variacion <- EVal_Cov[i] / var_t
+  cat("Variación total explicada por variable " , i, " : ", Variacion, "\n")
+  listaV <- append(listaV, Variacion)
+}
+```
+
+### Acumule los resultados anteriores
+
+```{r}
+
+
+cumsum(listaV)
+
+```
+
+
+### 5. Según los resultados anteriores, ¿qué componentes son los más importantes? ¿qué variables son las que más contribuyen a la primera y segunda componentes principales? ¿por qué lo dice? ¿influyen las unidades de las variables?
+
+
+Con lo que podemos observar de los resultados, la mayor variación de los componentes se puede ver explicada en el primero, con el 90% de la variabilidad. El segundo componente contiene tan solo el 9% de la varianza. Después de eso la varianza ya no está representada en gran proporción. Las unidades de las variables sí influyen dentro de la relación por lo que es importante hacer un reescalamiento de datos para no sesgar el resultado. 
+
+### 6. Hacer los mismos pasos anteriores, pero con la matriz de correlaciones (se obtiene con cor(x) si x está compuesto por variables numéricas)
+
+### Varianza por cada componente
+
+```{r}
+var_t <- sum(diag(cormat))
+var_t
+listaV <- list()
+
+for (i in 1:length(EVal_Cor)) {
+  Variacion <- EVal_Cor[i] / var_t
+  cat("Variación total explicada por variable " , i, " : ", Variacion, "\n")
+  listaV <- append(listaV, Variacion)
+}
+```
+
+
+### Acumule los resultados anteriores
+
+```{r}
+
+
+cumsum(listaV)
+
+```
+
+
+### 7. Compare los resultados de los incisos 6 y 7. ¿qué concluye?
+
+
+Vemos que la variabilidad de los componentes ya es más dispersa. En el acummulado necesitamos 7 componentes para representar el 90% de la variabilidad. La matriz de correlación se comporta de forma diferente, distribuyendo la variabilidad de los componentes.
+
+
+# Parte II
+
+```{r}
+library(stats)
+library(factoextra)
+library(ggplot2)
+datos= df
+cpS=princomp(datos,cor=FALSE)
+cpaS=as.matrix(datos)%*%cpS$loadings
+plot(cpaS[,1:2],type="p", main = "Título")
+text(cpaS[,1],cpaS[,2],1:nrow(cpaS))
+biplot(cpS)
+```
+
+
+Aquí tenemos una representación gráfica de como las variables afectan a lso componentes principales. La mayor parte dde las variables se encuentran en el (0,0) redondeando. Vemos que existen algunas variables que destacan en variabilidad hacia distintos componentes, haciendonos ver cuales se compoortan de forma similar.
+
+
+# Parte III 
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(ggplot2)
+library(dplyr)
+datos=df
+cp3 = PCA(datos)
+fviz_pca_ind(cp3, col.ind = "blue", addEllipses = TRUE, repel = TRUE)
+fviz_screeplot(cp3)
+fviz_contrib(cp3, choice = c('var'))
+```
+
+
+En la primera grafica vemos como las variables afectan a los componentes o las dimensiones. Aquí podemos ver como interactuan las variables entre sí. La segunda gráfica es una representación similar solo que es una representación en circulo, normalizada, ayudandonos a interpretar en igualdad las variables. La tercera grafica es una mezcla entre la primera y segunda gráfica, dandonos la representación no normalizada, pero con una ayuda que nos hace el mismo trabajo. Los últimos histogramas nos ayudan a verlo de una forma de barras.
+
+
+
+
+
+
+
+
+

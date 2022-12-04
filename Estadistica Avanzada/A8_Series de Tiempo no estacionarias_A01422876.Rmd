@@ -1,0 +1,211 @@
+---
+title: "A8_Series de tiempo no estacionarias"
+author: "Héctor San Román Caraza"
+date: "21/11/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data = data.frame(
+  "Año"=c(1,NA,NA,NA,2,NA,NA,NA,3,NA,NA,NA,4,NA,NA,NA),
+  "Trimestre"=c(1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4),
+  "Ventas(miles)"=c(4.8,4.1,6.0,6.5,5.8,5.2,6.8,7.4,6.0,5.6,7.5,7.8,6.3,5.9,8.0,8.4)
+)
+head(data,n=16)
+```
+
+## Grafico de dispersion de los datos
+```{r}
+t = 1:16
+plot(t, data$Ventas.miles., type ="o", col ="red",ylab = "Ventas",xlab="Tiempo", main = "Ventas por año")
+```
+
+Haciendo un análisis básico de lo que vemos en la gráfica de dispersión podemos ver que existen ciertas tendencias en los trimestres de acuerdo al año. En los trimestres 1 y 2 de cada año vemos que tendremos mínimas en el año en cuanto a ventas. El trimestre 3 suele ser mucho mayor al trimestre 2 cada año.Vemos que pasa algo similar de trimestre 4 a 1, existe una baja cuando se acaba el 4 trimestre y e llega al 1 del próximo año. 
+
+
+## Descomposición 
+
+```{r}
+Tiempo = ts(data$Ventas.miles., frequency = 4, start(c(2016, 1)))
+D =decompose(Tiempo, type = "m")
+plot(D)
+D
+```
+
+
+
+## Tendencia Lineal
+```{r}
+N = lm(data$Ventas.miles.~t)
+plot(t, data$Ventas.miles., type= "o", col = "red")
+abline(N, col = "blue")
+N
+text(4,28,"ventas= 4.8525 + 0.1799 año")
+```
+
+
+
+
+## Ventas Desestacionalizadas vs Tiempo
+
+```{r}
+ventas_desestacionalizadas = (D$x)/(D$seasonal)
+N2 = lm(ventas_desestacionalizadas~t)
+print(summary(N2))
+plot(t, ventas_desestacionalizadas, type = "l")
+abline(N2, col = "red")
+text(10, 5.5, " ventas = 5.10804 + 0.14738 * trimestre")
+```
+
+
+
+El modelo se ajusta bien a los datos con una $r^2 = 0.9151$, lo que nos habla bien de la variabilidad explicada.
+
+
+### Significancia de B1
+
+La \^$B_{1}$ nos dicta la pendiente, o la inclinación, de nuestra ecuación de ajuste. Vemos que el P-value de este coeficiente es menor a 0.05, lo que nos dice que este valor es significativo.
+
+###  Análisis de los residuos
+
+```{r}
+qqnorm(N2$residuals)
+qqline(N2$residuals)
+```
+
+Vemos que la línea de nuestro QQ PLOT nos dice que existe noralidad en nuestros residuos.
+
+### Prueba normalidad (Shapiro)
+
+```{r}
+shapiro.test(N2$residuals)
+```
+Vemos que nuestro p-value no es menor a nuestro alfa de 0.05, con lo que podemos decir que existe normalidad en los datos.
+
+## Pronósticos para próximo año
+
+```{r}
+f = function(x) {-3.5443 + 0.4847*x}
+# Los índices estacionales son: 
+a1 = D$seasonal[1]
+a2 = D$seasonal[2]
+a3 = D$seasonal[3]
+a4 = D$seasonal[4];
+f(17)*a1
+f(18)*a2
+f(19)*a3
+f(20)*a4
+```
+
+
+
+```{r}
+CME=mean(exp(2),na.rm=TRUE)
+CME
+```
+
+
+## Problema : "Un problemilla más"
+
+```{r}
+df = data.frame(
+  "Trimestre"=c(1,2,3,4),
+  "Año 1"=c(1690,940,2625,2500),
+  "Año 2"=c(1800,900,2900,2360),
+  "Año 3"=c(1850,1100,2930,2615)
+)
+head(df, n=4)
+```
+
+a) Encuentre los promedios móviles de cuatro trimestres y los promedios móviles centrados
+
+```{r}
+prom1 = sum(df$Año.1)/4
+prom2 = sum(df$Año.2)/4
+prom3 = sum(df$Año.3)/4
+
+cat("Promedios móviles","\n")
+
+prom1
+prom2
+prom3
+
+cat("Promedios móviles centrados","\n")
+
+prom1c = mean(c(prom1,prom2))
+prom2c = mean(c(prom2,prom3))
+prom3c = mean(c(prom1c,prom2c))
+
+prom1c
+prom2c
+prom3c
+
+```
+
+b) Calcule los índices estacionales de los cuatro trimestres
+
+```{r}
+df2 = subset(df, select = -c(1) )
+head(df2)
+t= ts(df2, frequency = 2, start(c(2016,1)))
+plot.ts(t, col = "red")
+D = decompose(t)
+plot(D, col ="red")
+```
+
+
+```{r}
+D$seasonal
+```
+
+c) ¿Cuándo obtiene la editorial el mayor índice estacional? ¿Parece razonable este resultado? ¿Por qué?
+
+```{r}
+t= ts(df$Año.3, frequency = 2, start(c(2016,1)))
+plot.ts(t, col = "red")
+D = decompose(t)
+plot(D, col ="red")
+D$seasonal
+```
+
+
+El mayor índice estacionario se obtiene en el 1ero y 3er trimestre del año. Estos índices lucen extraños, pues entre estos trimestres no se muestra variación alguna.Al hacer un análisis de vista en los datos vemos que en los trimestres 3 y 4 tenemos mayor venta que en los otros trimestres; sin embargo, del trimestre 2 al 3 vemos que existe un salto muy grande en ventas. Quizá estos índices nos dicen algo, pero ciertamente su interpretación hay que trabajarla más.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,91 @@
+---
+title: "Regresión de Poisson"
+author: "Héctor San Román Caraza"
+date: "6/11/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1- Trabajaremos con el paquete dataset, que incluye la base de datos warpbreaks, que contiene datos del hilo (yarn) para identificar cuáles variables predictoras afectan la ruptura de urdimbre.
+
+```{r}
+data<-warpbreaks
+head(data,10)
+```
+
+Este conjunto de datos indica cuántas roturas de urdimbre ocurrieron para diferentes tipos de telares por telar, por longitud fija de hilo:
+
+   - breaks: número de rupturas
+   - wool: tipo de lana (A o B)
+   - tensión: el nivel de tensión (L, M, H)
+   
+## 2. Analiza la base de datos:
+
+    Describe las variables y el número de datos. Describe los valores que toma y qué tipo de variable son.
+    
+```{r}
+summary(data)
+
+cat("Dimensión de los datos y su tipo: \n")
+
+str(data)
+```
+    
+    Obtén y analiza el histograma del número de rupturas
+    
+```{r}
+hist(data[,1], main = "Histograma rupturas")
+```
+Vemos que encontramos una mayor frecuencia en rupturas de entre 10 a 30, estas hacen la mayoría de los datos.
+    
+    
+    Obtén la media y la varianza del número de rupturas, ¿puedes decir que son iguales o diferentes?
+    
+```{r}
+cat("Media: " ,mean(data[,1]), "\n", "Varianza: ", var(data[,1]))
+```
+
+Vemos que existe una varianza muy alta, hablandonos de que los datos se encuentran muy dispersos. Checaremos ahora los outliers para revisar mejor esta dispersión.
+
+```{r}
+boxplot(data[,1])
+```
+
+### 3. Ajusta el modelo de regresión Poisson. Usa el mando: 
+
+```{r}
+poisson.model<-glm(breaks ~ wool + tension, data, family = poisson(link = "log"))
+summary(poisson.model)
+```
+
+
+    - Interpreta la información obtenida. Toma en cuenta que R genera variables Dummy para las variables categóricas. Para cada variable genera k-1 variables Dummy en k categorías (recuerda qué es una variable Dummy).
+    
+    - La desviación residual debe ser menor que los grados de libertad para asegurarse que no exista una dispersión excesiva. Una diferencia mayor, significará que aunque las estimaciones son correctas, los errores estándar son incorrectos y el modelo no lo toma en cuenta.
+    
+    - La desviación excesiva nula muestra que tan bien se predice la variable de respuesta mediante un modelo que incluye solo el intercepto (gran media). Una diferencia en los valores significa un mal ajuste.
+    
+    Si hay un mal modelo, recurre a usar un modelo cuasi Poisson, si los coeficientes son los mismos, el modelo es bueno:
+    
+```{r}
+poisson.model2<-glm(breaks ~ wool + tension, data = data, family = quasipoisson(link = "log"))
+summary(poisson.model2)
+```
+Vemos que la desviación residual es mucho mayor a los grados de libertad. Lo que nos indica que las predicciones son correctas; sin embargo, los errores son incorrectos y existe una gran varición en nuestros datos. Podemos ver que con el modelo cuassi poisson los coeficientes son los mismos, ayudandonos aver que el modelo es correcto. La variabilidad de los datos que vimos al sacar su varianza está representada en los modelos. 
+
+```{r}
+library(arm)
+
+se.coef2 = coef(poisson.model2)
+exp(se.coef2)
+
+cat("Variación de cambiar tipo de lana A a B: ", 1-0.8138425)
+```
+
+Sacamos el exponente para analizar la variación en el tipo de tela que usemos.Vemos que las rupturas bajan un 18\% cuando cambias de tipo de tela A a la B.
+
+
+

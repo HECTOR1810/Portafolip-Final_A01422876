@@ -1,0 +1,125 @@
+---
+title: "A5_ProcesoPoisson_A01422876"
+author: "Héctor San Román Caraza"
+date: "24/10/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Procesos Poisson: Drive-Thru
+
+El tiempo de llegada a una ventanilla de toma de órdenes desde un automóvil de un cierto comercio de hamburguesas sigue un proceso de Poisson con un promedio de 12 llegadas por hora.
+
+```{r}
+
+l0 <- 12
+
+```
+
+
+## ¿Cuál será la probabilidad de que el tiempo de espera de tres personas sea a lo más de 20 minutos?
+
+```{r}
+b <- 1/12
+p1 <- pgamma(20/60,3,1/b)
+cat("Probabilidad de que el tiempo de espera de tres ", "\n" ," personas sea a lo más de 20 minutos: ",p1)
+```
+
+## ¿Cuál es la probabilidad de que el tiempo de espera de una persona esté entre 5 y 10 segundos?
+
+```{r}
+p2 <- pexp(10/3600,l0) - pexp(5/3600,l0)
+cat("Probabilidad de que el tiempo de espera de una ", "\n" ," persona esté entre 5 y 10 segundos: ",p2)
+```
+
+## ¿Cuál será la probabilidad de que en 15 minutos lleguen a lo más tres personas?
+
+```{r}
+p3 <- ppois(3,3)
+cat("Probabilidad de que en 15 minutos lleguen a lo más tres personas: ",p3)
+```
+
+
+## ¿Cuál es la probabilidad de que el tiempo de espera de tres personas esté entre 5 y 10 segundos?
+
+```{r}
+p4 <- pgamma(10/3600,3,l0) - pgamma(5/3600,3,l0)
+cat("Probabilidad de que el tiempo de espera de ", "\n" ," tres personas esté entre 5 y 10 segundos: ",p4)
+```
+
+
+## Determine la media y varianza del tiempo de espera de tres personas.
+
+```{r}
+mu = 3 * b
+var = 3*b^2
+cat("La media es: ", mu, "\n")
+cat("La varianza es: ",var)
+```
+
+## ¿Cuál será la probabilidad de que el tiempo de espera de tres personas exceda una desviación estándar arriba de la media?
+
+```{r}
+t = mu + sqrt(var)
+
+1-pgamma(t,3,l0)
+```
+
+# Procesos Poisson: Entre partículas
+
+Una masa radioactiva emite partículas de acuerdo con un proceso de Poisson con una razón promedio de 15 partículas por minuto. En algún punto inicia el reloj.
+
+
+## ¿Cuál es la probabilidad de que en los siguientes 3 minutos la masa radioactiva emita 30 partículas?
+
+```{r}
+
+cat("La probabilidad de que en los siguientes 3 minutos ", "\n" ," la masa radioactiva emita 30 partículas: ", dpois(30,15*3))
+
+```
+
+
+## ¿Cuál es la probabilidad de que transcurran cinco segundos a lo más antes de la siguiente emisión?
+
+```{r}
+
+cat("La probabilidad de que transcurran cinco segundos ", "\n" ," a lo más antes de la siguiente emisión: ", pexp(5/60,15))
+
+```
+
+## ¿Cuánto es la mediana del tiempo de espera de la siguiente emisión?
+
+```{r}
+
+cat("Mediana del tiempo de espera de la siguiente emisión: ", qexp(0.5,15))
+
+```
+
+
+## ¿Cuál es la probabilidad de que transcurran a lo más cinco segundos antes de la segunda emisión?
+
+```{r}
+
+b <- 1/15
+
+p1 <- pgamma(5/60,2,1/b)
+
+cat("La probabilidad de que transcurran a lo más cinco segundos antes de la segunda emisión: ", p1 )
+
+```
+
+## ¿En que rango se encuentra el 50% del tiempo central que transcurre antes de la segunda emisión?
+
+```{r}
+
+q1 = qgamma(0.25,2,1/b)
+q3 = qgamma(0.75,2,1/b)
+
+cat("El rango en el que se encuentra el 50% del tiempo central que transcurre", "\n" ,"antes de la segunda emisión, es de entre: ",q1, " y ",q3)
+
+```
+
+

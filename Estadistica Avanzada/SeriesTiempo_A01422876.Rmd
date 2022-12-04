@@ -1,0 +1,140 @@
+---
+title: "Actividad Series de Tiempo"
+author: "Héctor San Román Caraza"
+date: "14/11/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Analizar los pronósticos en series de tiempo
+
+Usa los datos de las ventas de gasolina en una estación de servicio para analizar modelos de pronósticos de la serie de tiempo:
+
+```{r}
+t <- c(1:12)
+y <- c(17,21,19,23,18,16,20,18,22,20,15,22)
+n <- 12
+```
+
+## Promedios móviles
+
+```{r pressure}
+p = NA
+e = NA
+for(i in 1:(n-3)){p[i+3]=(y[i]+y[i+1]+y[i+2])/3; e[i+3] = p[i+3] - y[i+3]}
+Prom_m = data.frame(t,p,y,e^2)
+Prom_m
+```
+
+
+```{r}
+CME=mean(e^2,na.rm=TRUE)
+cat("El cuadrado medio del error por promedios móviles es", CME)
+```
+
+```{r}
+plot(t, y, type = 'o', col='red')
+x = 1:n
+lines(x,p[x],type='o',col='blue')
+```
+## Promedios móviles ponderados
+
+
+```{r}
+p2 = NA
+e2 = NA
+for(i in 1:(n-3)){p2[i+3]=(1/6)*y[i]+(2/6)*y[i+1]+(3/6)*y[i+2]; e2[i+3] = p2[i+3] - y[i+3]}
+Prom_m_p = data.frame(t,p2,y,e2^2)
+Prom_m_p
+```
+
+
+```{r}
+CME2 = mean(e2^2,na.rm=TRUE)
+cat("El cuadrado medio del error sin NA por promedios móviles ponderados es", CME2)
+```
+```{r}
+plot(t, y, type='o', col='red')
+x = 1:n
+lines(x,p2[x],type='o',col='blue')
+```
+
+## Método de suavizamiento exponencial
+
+```{r}
+p3 = NA
+e3 = NA
+p3[1] = y[1]
+p3[2] = y[1]
+a = 0.20
+for(i in 2:n){p3[i]=a*y[i-1]+(1-a)*p3[i-1]; e3[i] = y[i]- p3[i]}
+Suavi_exp = data.frame(t,p3,y,e3^2)
+Suavi_exp
+```
+
+
+```{r}
+CME3=mean(e3^2,na.rm=TRUE)
+cat("El cuadrado medio del error sin NA del método de suavizamiento exponencial es ", CME3)
+```
+
+```{r}
+plot(t, y, type='o', col='red')
+x = 1:n
+lines(x,p3[x],type='o',col='blue')
+```
+
+## Utiliza varios valores de en el método de suavizamiento hasta encontrar el valor de que minimice el CME.
+
+```{r}
+p4 = NA
+e4 = NA
+p4[1] = y[1]
+p4[2] = y[1]
+
+columnas = c("Alfa","CME") 
+CMES = data.frame(matrix(nrow = 0, ncol = length(columnas))) 
+colnames(CMES) = columnas
+
+alfa <- c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+
+for (a in alfa) {
+  for(i in 2:n){p4[i]=a*y[i-1]+(1-a)*p4[i-1]; e4[i] = y[i]- p4[i]}
+    CME4=mean(e4^2,na.rm=TRUE)
+    CMES[nrow(CMES) + 1,] = c(a, CME4)
+    p4 = NA
+    e4 = NA
+    p4[1] = y[1]
+    p4[2] = y[1]
+}
+
+CMES
+```
+
+Revisando los resultados de los cuadrados medios del error vemos que un alfa de 0.2 nos brinda mejores resultados. Esto lo vemos con el error mínimo en los valores del dataframe anterior.
+
+### Concluye sobre cuál de los modelos usados es el mejor
+
+El modelo que mostró un menor error cuadrado medio fue el de Método de suavizamiento exponencial. Como podemos ver también se desempeñó bien en nuestras iteraciones mostrando el menor error.
+
+```{r}
+# Promedio móvil
+
+Pronostico1 = sum(y[n]+y[n-1]+y[n-2])/3
+
+cat("Pronóstico de promedios móviles para ventas de gasolina en semana 13:", Pronostico1,"\n", "\n")
+
+# Promedio móvil ponderado
+
+Pronostico2 = (1/6)*y[n]+(2/6)*y[n-1]+(3/6)*y[n-2]
+cat("Pronóstico de promedios móviles ponderados para ventas de gasolina semana 13:", Pronostico2, "\n", "\n")
+
+# Método de suavizamiento exponencial
+
+Pronostico3 = 0.2*y[n]+(1-0.2)*p3[n]
+cat("Pronóstico de Método de suavizamiento exponencial para ventas de gasolina semana 13:", Pronostico3)
+```
+
