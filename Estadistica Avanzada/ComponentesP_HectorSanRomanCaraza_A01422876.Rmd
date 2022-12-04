@@ -1,0 +1,133 @@
+---
+title: "A3_Componentes_Principales_A01422876"
+author: "Héctor San Román Caraza"
+date: "11/10/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Actividad Componentes principales
+## PARTE A
+
+De los siguientes datos:
+
+ x1:  2.5, 0.5, 2.2, 1.9, 3.1, 2.3, 2, 1, 1.5, 1.1
+
+ x2:  2.4, 0.7, 2.9, 2.2, 3.0, 2.7, 1.6, 1.1, 1.6, 0.9
+
+1.- Obtenga una matriz de datos centrados en sus medias.
+2.- Obtenga la matriz de varianza-covarianza de la matriz de datos centrados
+3.- Obtenga los valores propios y vectores propios de la matriz de varianza-covarianza de la matriz de datos centrados.
+4.- Obtenga las matrices transpuestas de los vectores propios y la traspuesta de la matriz de datos centrados.
+5.- Multiplique la matriz transpuesta de los vectores propios con la transpuesta de la matriz de datos centrados.
+6.- Interprete los resultados.
+
+
+```{r cars}
+x1 <- c(2.5, 0.5, 2.2, 1.9, 3.1, 2.3, 2, 1, 1.5, 1.1)
+x2 <- c(2.4, 0.7, 2.9, 2.2, 3.0, 2.7, 1.6, 1.1, 1.6, 0.9)
+Matriz <- data.frame(x1,x2)
+Matriz 
+```
+
+### 1.- Matriz centrada en medias:
+
+
+```{r}
+
+m1 <- c(rep(mean(x1),10))
+m2 <- c(rep(mean(x2),10))
+Mc <- data.frame(x1-m1,x2-m2)
+Mc
+```
+
+### 2.- Matriz varianza-covarianza:
+
+
+```{r}
+Mcov <-  cov(Mc)
+```
+
+### 3.- Vectores y Valores propios
+
+```{r}
+EVal <- eigen(Mcov)$values
+EVec <- eigen(Mcov)$vectors
+```
+
+### 4.-  Matrices transpuestas de los vectores propios y la traspuesta de la matriz de datos centrados
+
+```{r}
+t_EVec <- t(EVec)
+t_Mc = t(Mc)
+```
+
+### 5.- Multiplique la matriz transpuesta de los vectores propios con la transpuesta de la matriz de datos centrados.
+
+```{r}
+CP = t_EVec%*%t_Mc
+rownames(CP) = c('CP1','CP2')
+t(CP)
+```
+
+### 6.- Interpretación
+
+El resultado de nuestra operación son los componentes principales. A partir de los valores podemos ver como cadda registro afecta al componente proncipal, entre mayor esté el número mayor variabilidad, o información, explica ese dato del componente.
+
+## PARTE B
+
+```{r}
+cpa <- prcomp(Matriz, scale = TRUE)
+names(cpa)
+```
+
+```{r}
+print("desviaciones estándar: ")
+cpa$sdev
+```
+
+```{r}
+print("center y scale dan las medias y desv estándar previa estandarización: ")
+cpa$center
+cpa$scale
+```
+
+
+```{r}
+print("Los coeficientes de la combinación lineal normalizada de componete")
+cpa$rotation
+```
+
+
+```{r}
+print("Los datos por sustituidos en la combinación lineal de vectores propios:")
+cpa$x
+```
+
+### Graficas
+
+```{r}
+biplot(x = cpa, scale = 0, cex =0.6, col = c("blue", "red"))
+```
+
+
+```{r}
+barplot(cpa$sdev^2, col = c("cyan", "red"))
+```
+
+### Importancia componentes.
+
+```{r}
+summary(cpa)
+```
+
+## Interpretación:
+
+Podemos ver que la mayor variabilidad de los datos se explican en el primer componente principal, con un .963 de variabilidad de los datos. Mientras que el segundo componente principal tan solo explica el 0.037. Vemos que solo existen estos dos componentes por lo que la acumulativa llega solo a 1.
+
+
+
+
