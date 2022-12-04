@@ -1,0 +1,76 @@
+---
+title: "La normal multivariada"
+author: "Héctor San Román Caraza"
+date: "23/9/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1.- Hallar el procedimiento para el cálculo de probabilidad 
+
+```{r}
+
+library(mnormt)
+
+
+x = c(2,3)
+miu = c(2.5, 4)
+sigma = matrix(c(1.2, 0, 0, 2.3), nrow = 2)
+pmnorm(x, miu, sigma)
+
+```
+
+
+## 2.- Grafique la anterior distribución bivariada del problema 1
+
+```{r}
+x <- seq(-3, 3, 0.1) 
+y <- seq(-3, 3, 0.1)
+mu<- c(2, 3)
+sigma <- matrix(c(1.2, 0, 0, 2.3), nrow=2)
+f <- function(x, y) dmnorm(cbind(x, y), mu, sigma)
+z <- outer(x, y, f)
+#create surface plot
+persp(x, y, z, theta=-30, phi=25, expand=0.6, ticktype='detailed', col = "pink")
+```
+
+## 3.- Grafique los contornos de la anterior distribución normal bivariada correspondiente a las alturas de  0.01,  0.03, 0.05, 0.07, 0.1
+
+
+
+```{r}
+#create bivariate normal distribution
+x     <- seq(-6, 7, 0.1) 
+y     <- seq(-6, 7, 0.1)
+mu<- c(2, 3)
+sigma <- matrix(c(1.2, 0, 0, 2.3), nrow=2)
+f     <- function(x, y) dmnorm(cbind(x, y), mu, sigma)
+z     <- outer(x, y, f)
+
+#create contour plot
+contour(x, y, z, col = "blue", levels = c(0.01,0.03,0.05,0.07,0.1))
+```
+## Prueba normalidad bivariada
+
+```{r}
+
+library(MVN)
+M = read.csv("datos.csv")
+
+## Test de Multinomalidad: Método Sesgo y kurtosis de Mardia
+mvn(M,subset = NULL,mvn = "mardia", covariance = FALSE,showOutliers = FALSE, multivariatePlot = "qq")
+```
+
+Ahora tenemos la qqplot, la cual nos dice que nuestros datos tiene una distribución normal. Podemos seguir la línea que nos cuenta la historia de normalidad; también podemos ver la prueba $mardia$ la cual nos arroja los p values con los que podremos manejar nuestras hipótesis:
+
+- $Ho: Los datos se distribuyen normalmente$
+
+- $H1: Los datos no se distribuyen normalmente.$
+
+Vemos que los p-values no son significativos para rechazar la hipótesis nula. Los datos se comportan como una normal.
+
+
+
